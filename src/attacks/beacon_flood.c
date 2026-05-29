@@ -27,6 +27,7 @@ struct beacon_flood_options {
   unsigned int speed;
   unsigned char *ies;
   int ies_len;
+  char *country;
 };
 
 //Global things, shared by packet creation and stats printing
@@ -49,6 +50,8 @@ void beacon_flood_longhelp()
 	  "      -a\n"
 	  "         Use also non-printable caracters in generated SSIDs\n"
 	  "         and create SSIDs that break the 32-byte limit\n"
+	  "      -C <country>\n"
+	  "         Country code\n"
 	  "      -f <filename>\n"
 	  "         Read SSIDs from file\n"
 	  "      -v <filename>\n"
@@ -98,8 +101,9 @@ void *beacon_flood_parse(int argc, char *argv[]) {
   bopt->speed = 50;
   bopt->ies = NULL;
   bopt->ies_len = 0;
+  bopt->country = NULL;
 
-  while ((opt = getopt(argc, argv, "n:f:av:t:w:b:mhc:s:i:")) != -1) {
+  while ((opt = getopt(argc, argv, "n:f:av:t:w:b:mhc:s:i:C:")) != -1) {
     switch (opt) {
       case 'n':
 	if (strlen(optarg) > 255) {
@@ -164,6 +168,12 @@ void *beacon_flood_parse(int argc, char *argv[]) {
       break;
       case 'i':
 	bopt->ies = hex2bin(optarg, &(bopt->ies_len));
+      break;
+      case 'C':
+	if (strlen(optarg) > 2) {
+	  printf("ERROR: country code too long\n"); return NULL;
+	}
+	bopt->country = malloc(strlen(optarg)); strcpy(bopt->country, optarg);
       break;
       default:
 	beacon_flood_longhelp();
@@ -245,6 +255,7 @@ struct packet beacon_flood_getpacket(void *options) {
   }
 
   pkt = create_beacon(bssid, ssid, (uint8_t) curchan, bopt->encryptions[encindex], bitrate, adhoc);
+  if (bopt->country) add_country_set(&pkt, bopt->country);
   if (bopt->ies) append_data(&pkt, bopt->ies, bopt->ies_len);
 
   sleep_till_next_packet(bopt->speed);

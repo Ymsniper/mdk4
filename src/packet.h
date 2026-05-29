@@ -251,6 +251,9 @@ uint16_t get_capabilities(struct packet *pkt);
 //Append data to packet
 void append_data(struct packet *pkt, unsigned char *data, int len);
 
+//Append country code to packet
+void add_country_set(struct packet *pkt, char *country);
+
 //Adds LLC header to a packet created with create_ieee_hdr(). You can use this to build unencrypted data frames or EAP packets.
 void add_llc_header(struct packet *pkt, uint16_t llc_type);
 

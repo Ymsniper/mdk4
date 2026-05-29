@@ -159,6 +159,17 @@ void add_channel_set(struct packet *pkt, uint8_t channel) {
   pkt->len += 3;
 }
 
+void add_country_set(struct packet *pkt, char *country) {
+  pkt->data[pkt->len] = 0x07;	// Country Information set
+  pkt->data[pkt->len+1] = 0x06;	// length
+  memcpy(pkt->data + pkt->len + 2, country, 2);	// copy country code
+  pkt->data[pkt->len+4] = ' '; // environment: ' ' for any. 'I' for indoor. 'O' for outdoor
+  pkt->data[pkt->len+5] = 1; // first channel
+  pkt->data[pkt->len+6] = 13; // number of channel
+  pkt->data[pkt->len+7] = 30; // max tx power
+  pkt->len += 8;
+}
+
 struct packet create_beacon(struct ether_addr bssid, char *ssid, uint8_t channel, char encryption, unsigned char bitrate, char adhoc) {
   struct packet beacon = {0};
   struct beacon_fixed *bf;
